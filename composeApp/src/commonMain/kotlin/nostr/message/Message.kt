@@ -10,6 +10,7 @@ abstract class Message {
         val jsonEncoder = Json
         val jsonDecoder = Json {
             ignoreUnknownKeys = true
+            useArrayPolymorphism = true
         }
     }
 }

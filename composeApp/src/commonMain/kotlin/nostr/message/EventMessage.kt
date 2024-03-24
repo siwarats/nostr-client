@@ -1,6 +1,8 @@
 package nostr.message
 
+import cryptography.Schnorr
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -23,6 +25,11 @@ data class EventMessage(
             add(jsonEncoder.encodeToJsonElement(eventContent))
         }
         return jsonEncoder.encodeToString(arrayElement)
+    }
+
+    fun isValidSignature(schnorr : Schnorr) : Boolean {
+        val generatedId = eventContent.generateId(schnorr)
+        return schnorr.verify(eventContent.pubKey, eventContent.sig, generatedId)
     }
 
     companion object {

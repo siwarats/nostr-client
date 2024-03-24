@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.unit.dp
 import app.database.Database
+import cryptography.getSchnorr
 import data.repository.PostRepositoryImpl
 import kotlinx.coroutines.launch
 import nostr.relay.Relay
@@ -23,10 +24,11 @@ private const val SIAMSTR = "relay.siamstr.com"
 @Preview
 fun App() {
     val coroutineScope = rememberCoroutineScope()
+    val rememberSchnoor = remember{ getSchnorr() }
     val repo = remember {
         PostRepositoryImpl(
-            Relay(SIAMSTR),
-            Database(createDriver())
+            Relay(SIAMSTR, rememberSchnoor),
+            Database(createDriver()),
         )
     }
     MaterialTheme {
@@ -34,12 +36,14 @@ fun App() {
         val posts by remember { postState }
         Column {
             Button({
-                coroutineScope.launch { repo.getPosts(
-                    authors = null,
-                    since = null,
-                    until = null,
-                    limit = 1
-                ) }
+                coroutineScope.launch {
+                    repo.getPosts(
+                        authors = null,
+                        since = null,
+                        until = null,
+                        limit = 1
+                    )
+                }
             }) {
                 Text("Load")
             }

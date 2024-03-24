@@ -23,16 +23,16 @@ kotlin {
         }
     }
     
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
-        }
-    }
+//    listOf(
+//        iosX64(),
+//        iosArm64(),
+//        iosSimulatorArm64()
+//    ).forEach { iosTarget ->
+//        iosTarget.binaries.framework {
+//            baseName = "ComposeApp"
+//            isStatic = true
+//        }
+//    }
     
     sourceSets {
         
@@ -40,15 +40,17 @@ kotlin {
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
+            implementation(kotlin("stdlib"))
             implementation(libs.sqldelight.android)
-            implementation(libs.secp256k1.jvm)
+            implementation(libs.secp256k1.android)
+//            implementation(libs.secp256k1.linux)
         }
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
-            implementation(libs.sqldelight.native)
+//        iosMain.dependencies {
+//            implementation(libs.ktor.client.darwin)
+//            implementation(libs.sqldelight.native)
 //            implementation(kotlin("stdlib"))
 //            implementation(libs.secp256k1.native)
-        }
+//        }
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -68,6 +70,7 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.secp256k1.jvm)
         }
     }
 }

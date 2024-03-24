@@ -1,5 +1,6 @@
 package nostr.relay
 
+import cryptography.Schnorr
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.transform
 import nostr.message.CloseMessage
@@ -9,7 +10,8 @@ import nostr.message.Message
 import nostr.message.RequestMessage
 
 class Relay(
-    host: String
+    host: String,
+    private val schnorr: Schnorr
 ) {
     private val webSocket: WebSocket = RelayWebSocket(host)
 
@@ -26,6 +28,9 @@ class Relay(
     private fun Flow<String>.mapToMessage(): Flow<Message> {
         return this.transform {
             val message = EventMessage.fromJsonString(it)
+                ?.takeIf { event ->
+                    event.isValidSignature(schnorr)
+                }
                 ?: EoseMessage.fromJsonString(it)
                 ?: CloseMessage.fromJsonString(it)
                 ?: RequestMessage.fromJsonString(it)

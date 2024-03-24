@@ -6,6 +6,7 @@ import java.security.MessageDigest
 
 
 class AndroidSchnorr : Schnorr {
+
     override fun getPubKey(privateKey: String): String {
         return Secp256k1.pubkeyCreate(Hex.decode(privateKey))
             .let {
