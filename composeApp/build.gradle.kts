@@ -67,6 +67,8 @@ kotlin {
             implementation(libs.sqldelight.coroutine.ext)
             implementation(kotlin("stdlib-common"))
             implementation(libs.secp256k1)
+            implementation(libs.image.loader)
+            implementation(libs.kotlinx.datetime)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

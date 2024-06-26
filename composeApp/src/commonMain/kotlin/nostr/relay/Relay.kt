@@ -29,7 +29,8 @@ class Relay(
         return this.transform {
             val message = EventMessage.fromJsonString(it)
                 ?.takeIf { event ->
-                    event.isValidSignature(schnorr)
+                    val isValid = event.isValidSignature(schnorr)
+                    return@takeIf isValid
                 }
                 ?: EoseMessage.fromJsonString(it)
                 ?: CloseMessage.fromJsonString(it)

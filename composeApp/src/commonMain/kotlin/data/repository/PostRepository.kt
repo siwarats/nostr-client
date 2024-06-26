@@ -3,14 +3,15 @@ package data.repository
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.database.Database
-import cryptography.Schnorr
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.onEach
+import logger.Logger
 import model.Post
 import nostr.Constant.EVENT_KIND_TEXT_NOTE
 import nostr.message.CloseMessage
@@ -41,13 +42,15 @@ class PostRepositoryImpl(
     private val database: Database
 ) : CoroutineScope, PostRepository {
 
+    private val job = Job()
+
     init {
         applyAutoCacheIntoDatabase()
         applyAutoUnsubscribe()
     }
 
     override val coroutineContext: CoroutineContext
-        get() = Dispatchers.IO
+        get() = Dispatchers.IO + job
 
     override val posts: Flow<List<Post>>
         get() = database.postQueries.selectAllPost()
@@ -98,27 +101,26 @@ class PostRepositoryImpl(
     }
 
     private fun applyAutoCacheIntoDatabase() {
-        launch {
-            relay.response()
-                .filterIsInstance(EventMessage::class)
-                .collect {
-                    database.postQueries.insertPost(
-                        id = it.eventContent.id,
-                        pubKey = it.eventContent.pubKey,
-                        content = it.eventContent.content,
-                        createdAt = it.eventContent.createdAt
-                    )
-                }
-        }
+        relay.response()
+            .filterIsInstance(EventMessage::class)
+            .onEach {
+                Logger.log("Insert to DB ${it.subscribeId}")
+                database.postQueries.insertPost(
+                    id = it.eventContent.id,
+                    pubKey = it.eventContent.pubKey,
+                    content = it.eventContent.content,
+                    createdAt = it.eventContent.createdAt
+                )
+            }
+            .launchIn(this)
     }
 
     private fun applyAutoUnsubscribe() {
-        launch {
-            relay.response()
-                .filterIsInstance(EoseMessage::class)
-                .collect {
-                    relay.send(CloseMessage(it.subscribeId))
-                }
-        }
+        relay.response()
+            .filterIsInstance(EoseMessage::class)
+            .onEach {
+                relay.send(CloseMessage(it.subscribeId))
+            }
+            .launchIn(this)
     }
 }
